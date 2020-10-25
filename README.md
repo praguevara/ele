@@ -16,7 +16,7 @@ Available options:
 
 ## Source files
 
-Important: new line at the end.
+Important: new line at the end!
 
 ```
 (A) IF X != 0 GOTO B
