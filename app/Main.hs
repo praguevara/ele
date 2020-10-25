@@ -2,10 +2,8 @@
 
 module Main where
 
-import Data.Semigroup ((<>))
 import Data.Text (pack)
 import Interpreter
-import Language
 import Options.Applicative
 import Parser (pProgram)
 import Text.Megaparsec (parse)
@@ -18,16 +16,15 @@ data Options = Options
 opts :: Parser Options
 opts =
   Options
-    <$> strOption
-      ( short 'F'
-          <> long "file"
-          <> metavar "FILE"
+    <$> argument str
+      ( metavar "FILE"
           <> help "Source file"
       )
     <*> option
       auto
       ( long "input"
           <> short 'X'
+          <> metavar "INPUT"
           <> value [0]
           <> help "[3, 1] means that X = 3, X1 = 1"
       )
@@ -36,8 +33,7 @@ main :: IO ()
 main = do
   os <- execParser (info (helper <*> opts) (fullDesc <> progDesc "An L interpreter. By praguevara."))
   contents <- pack <$> readFile (file os)
-  let p = parse pProgram "L" contents
-  case p of
+  case parse pProgram "L" contents of
     Left _ -> return ()
     Right p -> do
       print p
