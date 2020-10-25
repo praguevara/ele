@@ -7,6 +7,7 @@ import Interpreter
 import Options.Applicative
 import Parser (pProgram)
 import Text.Megaparsec (parse)
+import Text.Megaparsec.Error
 
 data Options = Options
   { file :: FilePath,
@@ -34,9 +35,8 @@ main = do
   os <- execParser (info (helper <*> opts) (fullDesc <> progDesc "An L interpreter. By praguevara."))
   contents <- pack <$> readFile (file os)
   case parse pProgram "L" contents of
-    Left _ -> return ()
+    Left err -> putStrLn (errorBundlePretty err)
     Right p -> do
-      print p
       let (y, trace) = run (input os) p
       mapM_ print trace
       putStrLn ("Y = " ++ show y)
