@@ -27,9 +27,9 @@ opts =
     <*> option
       auto
       ( long "input"
+          <> short 'X'
           <> value [0]
-          <> metavar "X"
-          <> help "Initial value of the X variables"
+          <> help "[3, 1] means that X = 3, X1 = 1"
       )
 
 main :: IO ()
@@ -39,5 +39,8 @@ main = do
   let p = parse pProgram "L" contents
   case p of
     Left _ -> return ()
-    Right p -> print p
-  print (run (input os) <$> p)
+    Right p -> do
+      print p
+      let (y, trace) = run (input os) p
+      mapM_ print trace
+      putStrLn ("Y = " ++ show y)

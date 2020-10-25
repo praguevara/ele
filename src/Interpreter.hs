@@ -3,6 +3,7 @@
 module Interpreter where
 
 import Control.Lens
+import Control.Monad.Trans.Writer.Strict
 import qualified Data.Map as M
 import qualified Data.Vector as V
 import Language
@@ -13,12 +14,22 @@ data State = State
   { _m :: Int,
     _variables :: M.Map Variable Int
   }
-  deriving (Show)
 
 makeLenses ''State
 
+instance Show State where
+  show State {_m = m, _variables = vs} =
+    unlines
+      [ concat ["m = ", show m],
+        concat ["variables: ", (show . M.toList) vs]
+      ]
+
 initialState :: [Int] -> State
-initialState vs = State {_m = 0, _variables = M.fromList ((\(i, x) -> (X i, x)) <$> (zip [0 ..] vs))}
+initialState vs =
+  State
+    { _m = 0,
+      _variables = M.fromList ((\(i, x) -> (X i, x)) <$> (zip [0 ..] vs))
+    }
 
 getVariable :: State -> Variable -> Int
 getVariable s v = M.findWithDefault 0 v (_variables s)
@@ -34,21 +45,27 @@ currentSentence p s = case _sentences p V.!? (_m s) of
 incrementPc :: State -> State
 incrementPc = over m succ
 
-step :: P -> State -> Either Int State
+step :: P -> State -> Writer [State] (Either Int State)
 step p s = case currentSentence p s of
-  Left y -> Left y
-  Right w -> Right $ case w of
-    Inc v -> incrementPc (set variables (M.insert v (succ (getVariable s v)) (_variables s)) s)
-    Dec v -> incrementPc (set variables (M.insert v (max 0 (pred (getVariable s v))) (_variables s)) s)
-    Nop _ -> incrementPc s
-    Jnz v l ->
-      if (getVariable s v) /= 0
-        then (set m (resolveLabel p s l) s)
-        else incrementPc s
+  Left y -> return $ Left y
+  Right w -> do
+    tell [s]
+    return $
+      Right $ case w of
+        Inc v -> incrementPc (set variables (M.insert v (succ (getVariable s v)) (_variables s)) s)
+        Dec v -> incrementPc (set variables (M.insert v (max 0 (pred (getVariable s v))) (_variables s)) s)
+        Nop _ -> incrementPc s
+        Jnz v l ->
+          if (getVariable s v) /= 0
+            then set m (resolveLabel p s l) s
+            else incrementPc s
 
-run :: [Int] -> P -> Int
-run vs p = f (step p (initialState vs))
+run :: [Int] -> P -> (Int, [State])
+run vs p = (runWriter . f) (step p (initialState vs))
   where
-    f e = case e of
-      Left y -> y
-      Right s -> f (step p s)
+    f :: Writer [State] (Either Int State) -> Writer [State] Int
+    f x = do
+      e <- x
+      case e of
+        Left y -> return y
+        Right s -> f (step p s)

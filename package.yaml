@@ -25,10 +25,9 @@ dependencies:
 - vector
 - containers
 - lens
-- loop
 - text
 - optparse-applicative
-- pretty-simple
+- transformers
 
 library:
   source-dirs: src
