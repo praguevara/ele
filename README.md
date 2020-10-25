@@ -11,10 +11,12 @@ Usage: ele FILE [-X|--input INPUT]
 Available options:
   -h,--help                Show this help text
   FILE                     Source file
-  -X,--input INPUT         [3, 1] means that X = 3, X1 = 1
+  -X,--input INPUT         -X [3, 1] means that X = 3, X1 = 1
 ```
 
 ## Source files
+
+Important: new line at the end.
 
 ```
 (A) IF X != 0 GOTO B
@@ -26,6 +28,7 @@ Y++
 Y++
 Z++
 IF Z != 0 GOTO A
+
 ```
 
 ## Example output
