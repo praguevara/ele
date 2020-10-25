@@ -5,7 +5,6 @@ module Interpreter where
 import Control.Lens
 import qualified Data.Map as M
 import qualified Data.Vector as V
-import Debug.Trace
 import Language
 
 makeLenses ''P
@@ -28,7 +27,7 @@ resolveLabel :: P -> State -> Label -> Int
 resolveLabel p _ l = (_labels p) M.! l
 
 currentSentence :: P -> State -> Either Int Sentence
-currentSentence p s = case (traceShowId $ _sentences p V.!? (_m s)) of
+currentSentence p s = case _sentences p V.!? (_m s) of
   Nothing -> Left (getVariable s Y)
   Just a -> Right a
 
@@ -36,7 +35,7 @@ incrementPc :: State -> State
 incrementPc = over m succ
 
 step :: P -> State -> Either Int State
-step p s = case currentSentence p (traceShowId s) of
+step p s = case currentSentence p s of
   Left y -> Left y
   Right w -> Right $ case w of
     Inc v -> incrementPc (set variables (M.insert v (succ (getVariable s v)) (_variables s)) s)

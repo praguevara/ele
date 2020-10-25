@@ -8,7 +8,6 @@ import Interpreter
 import Language
 import Options.Applicative
 import Parser (pProgram)
-import System.Environment
 import Text.Megaparsec (parse)
 
 data Options = Options
@@ -38,5 +37,7 @@ main = do
   os <- execParser (info (helper <*> opts) (fullDesc <> progDesc "An L interpreter. By praguevara."))
   contents <- pack <$> readFile (file os)
   let p = parse pProgram "L" contents
-  print p
+  case p of
+    Left _ -> return ()
+    Right p -> print p
   print (run (input os) <$> p)
