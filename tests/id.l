@@ -1,5 +1,5 @@
-x++
-(a) x++
-x--
-if x != 0 goto a
-y--
+X++
+(A) Y++
+X--
+IF X != 0 GOTO A
+Y--

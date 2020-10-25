@@ -16,3 +16,4 @@ data P = P
   { _labels :: Map Label Int,
     _sentences :: Vector Sentence
   }
+  deriving (Show)

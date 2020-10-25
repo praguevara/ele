@@ -17,6 +17,7 @@ type Line = ((Maybe Lang.Label), Lang.Sentence)
 pProgram :: Parser Lang.P
 pProgram = do
   lines <- many pLine
+  eof
   let (ls, ss) = f (zip [0 ..] lines)
   return Lang.P {Lang._labels = M.insert (Lang.Label 'S') (length ss) ls, Lang._sentences = ss}
   where
@@ -39,6 +40,7 @@ pLine = do
           return l
       )
   sentence <- pSentence
+  newline
   return (maybeLabel, sentence)
 
 pLabel :: Parser Lang.Label
@@ -74,11 +76,11 @@ pVariable =
   choice
     [ do
         char 'X'
-        i <- read <$> many digitChar :: Parser Int
+        i <- (read <$> some digitChar) <|> (pure 0)
         return (Lang.X i),
       Lang.Y <$ char 'Y',
       do
         char 'Z'
-        i <- read <$> many digitChar :: Parser Int
+        i <- (read <$> some digitChar) <|> (pure 0)
         return (Lang.Z i)
     ]

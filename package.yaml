@@ -27,6 +27,8 @@ dependencies:
 - lens
 - loop
 - text
+- optparse-applicative
+- pretty-simple
 
 library:
   source-dirs: src

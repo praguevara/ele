@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 15b5008a8a874d45ed5806f551f8027ac6fee88c681d515cf3cbc80e002d3b94
+-- hash: daa3a779f1bd595f304d9ed7efcda570958210f39bd0400b65e8cc06001c5b26
 
 name:           ele
 version:        0.1.0.0
@@ -40,6 +40,8 @@ library
     , lens
     , loop
     , megaparsec
+    , optparse-applicative
+    , pretty-simple
     , text
     , vector
   default-language: Haskell2010
@@ -58,6 +60,8 @@ executable ele-exe
     , lens
     , loop
     , megaparsec
+    , optparse-applicative
+    , pretty-simple
     , text
     , vector
   default-language: Haskell2010
@@ -77,6 +81,8 @@ test-suite ele-test
     , lens
     , loop
     , megaparsec
+    , optparse-applicative
+    , pretty-simple
     , text
     , vector
   default-language: Haskell2010
