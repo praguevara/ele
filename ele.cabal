@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f8d0bfbd3d492932567dfb40efb57cf57df32f39cb7c0b79930549ab768b47f8
+-- hash: a490a5477752d7bd3bfc050db78d65e823fd0cb87999947a41191a5985638c10
 
 name:           ele
-version:        0.1.0.0
+version:        0.1.1.0
 description:    Please see the README on GitHub at <https://github.com/praguevara/ele#readme>
 homepage:       https://github.com/praguevara/ele#readme
 bug-reports:    https://github.com/praguevara/ele/issues
@@ -27,6 +27,7 @@ source-repository head
 
 library
   exposed-modules:
+      Code
       Interpreter
       Language
       Parser
@@ -38,8 +39,9 @@ library
       base >=4.7 && <5
     , containers
     , lens
-    , megaparsec
+    , megaparsec >=9.0.0
     , optparse-applicative
+    , primes
     , text
     , transformers
     , vector
@@ -51,14 +53,15 @@ executable ele
       Paths_ele
   hs-source-dirs:
       app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Werror -O2
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -O2
   build-depends:
       base >=4.7 && <5
     , containers
     , ele
     , lens
-    , megaparsec
+    , megaparsec >=9.0.0
     , optparse-applicative
+    , primes
     , text
     , transformers
     , vector
@@ -77,8 +80,9 @@ test-suite ele-test
     , containers
     , ele
     , lens
-    , megaparsec
+    , megaparsec >=9.0.0
     , optparse-applicative
+    , primes
     , text
     , transformers
     , vector

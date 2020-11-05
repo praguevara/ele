@@ -47,10 +47,10 @@ incrementPc = over m succ
 
 step :: P -> State -> Writer [State] (Either Int State)
 step p s = case currentSentence p s of
-  Left y -> return $ Left y
+  Left y -> pure $ Left y
   Right w -> do
     tell [s]
-    return $
+    pure $
       Right $ case w of
         Inc v -> incrementPc (set variables (M.insert v (succ (getVariable s v)) (_variables s)) s)
         Dec v -> incrementPc (set variables (M.insert v (max 0 (pred (getVariable s v))) (_variables s)) s)
@@ -67,5 +67,5 @@ run vs p = (runWriter . f) (step p (initialState vs))
     f x = do
       e <- x
       case e of
-        Left y -> return y
+        Left y -> pure y
         Right s -> f (step p s)
