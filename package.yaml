@@ -21,13 +21,14 @@ description:         Please see the README on GitHub at <https://github.com/prag
 
 dependencies:
 - base >= 4.7 && < 5
-- megaparsec
+- megaparsec >= 9.0.0
 - vector
 - containers
 - lens
 - text
 - optparse-applicative
 - transformers
+- primes
 
 library:
   source-dirs: src
@@ -41,7 +42,6 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     - -Wall
-    - -Werror
     - -O2
     dependencies:
     - ele

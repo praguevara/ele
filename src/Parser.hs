@@ -2,85 +2,95 @@
 
 module Parser where
 
+import Data.Foldable (traverse_)
 import qualified Data.Map as M
-import Data.Text (Text)
+import qualified Data.Text as T
 import qualified Data.Vector as V
 import Data.Void
 import qualified Language as Lang
 import Text.Megaparsec
 import Text.Megaparsec.Char
+import qualified Text.Megaparsec.Char.Lexer as L
 
-type Parser = Parsec Void Text
+type Parser = Parsec Void T.Text
 
-type Line = ((Maybe Lang.Label), Lang.Sentence)
+sc :: Parser ()
+sc =
+  L.space
+    hspace1
+    (L.skipLineComment "#" >> some newline >> pure ())
+    empty
+
+lexeme :: Parser a -> Parser a
+lexeme = L.lexeme sc
+
+symbol :: T.Text -> Parser T.Text
+symbol = L.symbol' sc
+
+type Line = (Maybe Lang.Label, Lang.Sentence)
 
 pProgram :: Parser Lang.P
 pProgram = do
-  lines <- many pLine
+  lines' <- many pLine
   eof
-  let (ls, ss) = f (zip [0 ..] lines)
-  return Lang.P {Lang._labels = M.insert (Lang.Label 'S') (length ss) ls, Lang._sentences = ss}
+  let (ls, ss) = f (zip [0 ..] lines')
+  pure Lang.P {Lang._labels = M.insert (Lang.Label 'S' 1) (V.length ss) ls, Lang._sentences = ss}
   where
-    f :: [(Int, Line)] -> (M.Map Lang.Label Int, V.Vector Lang.Sentence)
     f ls = foldr (\(i, (l, s)) -> \(m, v) -> (g l i m, V.cons s v)) (M.empty, V.empty) ls
 
-    g :: Maybe Lang.Label -> Int -> M.Map Lang.Label Int -> M.Map Lang.Label Int
     g l i m = case l of
       Nothing -> m
       Just x -> M.insert x i m
 
 pLine :: Parser Line
 pLine = do
-  maybeLabel <-
-    optional
-      ( do
-          char '('
-          l <- pLabel
-          string ") "
-          return l
-      )
-  sentence <- pSentence
-  newline
-  return (maybeLabel, sentence)
+  lexeme
+    ( do
+        maybeLabel <- (lexeme . optional) (between (symbol "(") (symbol ")") pLabel)
+        sentence <- pSentence
+        _ <- some newline
+        pure (maybeLabel, sentence)
+    )
 
 pLabel :: Parser Lang.Label
 pLabel = do
-  label <- letterChar
-  return (Lang.Label label)
+  (a, b) <- pXi (choice (char' <$> ['A', 'B', 'C', 'D', 'S']))
+  pure (Lang.Label a b)
 
 pSentence :: Parser Lang.Sentence
 pSentence =
   pJnz <|> do
     v <- pVariable
     ar <- pAr
-    return (ar v)
+    pure (ar v)
 
 pAr :: Parser (Lang.Variable -> Lang.Sentence)
 pAr =
   choice
-    [ Lang.Inc <$ string "++",
-      Lang.Dec <$ string "--",
-      Lang.Nop <$ string "=="
+    [ Lang.Inc <$ symbol "++",
+      Lang.Dec <$ symbol "--",
+      Lang.Nop <$ symbol "=="
     ]
 
 pJnz :: Parser Lang.Sentence
 pJnz = do
-  string "IF "
+  _ <- symbol "IF"
   v <- pVariable
-  string " != 0 GOTO "
+  _ <- traverse_ symbol ["!=", "0", "GOTO"]
   l <- pLabel
-  return (Lang.Jnz v l)
+  pure (Lang.Jnz v l)
 
 pVariable :: Parser Lang.Variable
 pVariable =
-  choice
-    [ do
-        char 'X'
-        i <- (read <$> some digitChar) <|> (pure 0)
-        return (Lang.X i),
-      Lang.Y <$ char 'Y',
-      do
-        char 'Z'
-        i <- (read <$> some digitChar) <|> (pure 0)
-        return (Lang.Z i)
+  (lexeme . choice)
+    [ Lang.X <$> (snd <$> pXi (symbol "X")),
+      Lang.Y <$ symbol "Y",
+      Lang.Z <$> (snd <$> pXi (symbol "Z"))
     ]
+  where
+
+pXi :: Num b => Parser a -> Parser (a, b)
+pXi x = do
+  l <- x
+  i <- fromInteger <$> L.decimal <|> pure 1
+  pure (l, i)
