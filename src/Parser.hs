@@ -36,7 +36,7 @@ pProgram = do
   let (ls, ss) = f (zip [0 ..] lines')
   pure Lang.P {Lang._labels = M.insert (Lang.Label 'S' 1) (V.length ss) ls, Lang._sentences = ss}
   where
-    f ls = foldr (\(i, (l, s)) -> \(m, v) -> (g l i m, V.cons s v)) (M.empty, V.empty) ls
+    f ls = foldr (\(i, (l, s)) (m, v) -> (g l i m, V.cons s v)) (M.empty, V.empty) ls
 
     g l i m = case l of
       Nothing -> m
@@ -76,9 +76,8 @@ pJnz :: Parser Lang.Sentence
 pJnz = do
   _ <- symbol "IF"
   v <- pVariable
-  _ <- traverse_ symbol ["!=", "0", "GOTO"]
-  l <- pLabel
-  pure (Lang.Jnz v l)
+  traverse_ symbol ["!=", "0", "GOTO"]
+  Lang.Jnz v <$> pLabel
 
 pVariable :: Parser Lang.Variable
 pVariable =
@@ -87,7 +86,6 @@ pVariable =
       Lang.Y <$ symbol "Y",
       Lang.Z <$> (snd <$> pXi (symbol "Z"))
     ]
-  where
 
 pXi :: Num b => Parser a -> Parser (a, b)
 pXi x = do

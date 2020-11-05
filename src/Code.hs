@@ -23,5 +23,5 @@ l c = head (filter (\t -> not ((2 ^ (t + 1)) `isDivisor` (c + 1))) [0..c])
     isDivisor a b = b `rem` a == 0
 
 r :: Int -> Int
-r x = ((x + 1) `div` 2 ^ (l x) - 1) `div` 2
+r x = ((x + 1) `div` 2 ^ l x - 1) `div` 2
 

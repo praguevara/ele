@@ -27,7 +27,7 @@ opts =
           <> short 'X'
           <> metavar "INPUT"
           <> value [0]
-          <> help "[3, 1] means that X = 3, X1 = 1"
+          <> help "[3, 1] means that X(1) = 3, X2 = 1"
       )
 
 main :: IO ()

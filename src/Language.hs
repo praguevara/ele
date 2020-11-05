@@ -13,16 +13,16 @@ data Variable = X Int | Y | Z Int
   deriving (Eq, Ord)
 
 instance Show Variable where
-  show (X i) = concat ["X", show i]
+  show (X i) = "X" ++ show i
   show Y = "Y"
-  show (Z i) = concat ["Z", show i]
+  show (Z i) = "Z" ++ show i
 
 data Sentence = Inc Variable | Dec Variable | Nop Variable | Jnz Variable Label
 
 instance Show Sentence where
-  show (Inc v) = concat [show v, "++"]
-  show (Dec v) = concat [show v, "--"]
-  show (Nop v) = concat [show v, "=="]
+  show (Inc v) = show v ++ "++"
+  show (Dec v) = show v ++ "--"
+  show (Nop v) = show v ++ "=="
   show (Jnz v l) = concat ["IF ", show v, " != 0 GOTO ", show l]
 
 data P = P
@@ -33,5 +33,5 @@ data P = P
 instance Show P where
   show P {_labels = ls, _sentences = ss} = unlines ["\tLabels:", showLabels ls, "\tSentences:", showSentences ss]
     where
-      showLabels ls = unlines $ (\(l, i) -> concat [show i, ":\t", show l]) <$> (M.toList ls)
+      showLabels ls = unlines $ (\(l, i) -> concat [show i, ":\t", show l]) <$> M.toList ls
       showSentences ss = unlines ((\(i, s) -> concat [show i, ":\t", show s]) <$> zip [0 ..] (V.toList ss))
