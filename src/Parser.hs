@@ -11,6 +11,7 @@ import qualified Language as Lang
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
+import Data.Char
 
 type Parser = Parsec Void T.Text
 
@@ -55,7 +56,7 @@ pLine = do
 pLabel :: Parser Lang.Label
 pLabel = do
   (a, b) <- pXi (choice (char' <$> ['A', 'B', 'C', 'D', 'S']))
-  pure (Lang.Label a b)
+  pure (Lang.Label (toUpper a) b)
 
 pSentence :: Parser Lang.Sentence
 pSentence =

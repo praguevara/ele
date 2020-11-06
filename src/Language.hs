@@ -33,5 +33,5 @@ data P = P
 instance Show P where
   show P {_labels = ls, _sentences = ss} = unlines ["\tLabels:", showLabels ls, "\tSentences:", showSentences ss]
     where
-      showLabels ls = unlines $ (\(l, i) -> concat [show i, ":\t", show l]) <$> M.toList ls
-      showSentences ss = unlines ((\(i, s) -> concat [show i, ":\t", show s]) <$> zip [0 ..] (V.toList ss))
+      showLabels ls = unlines ((\(l, i) -> concat [show i, ":\t", show l]) <$> M.toList ls)
+      showSentences ss = unlines ((\(i, s) -> concat [show i, ":\t", show s]) <$> zip [1 ..] (V.toList ss))

@@ -3,11 +3,10 @@
 module Interpreter where
 
 import Control.Lens
-import Control.Monad.Trans.Writer.Strict
+import Data.Bifunctor
 import qualified Data.Map as M
 import qualified Data.Vector as V
 import Language
-import Data.Bifunctor
 
 makeLenses ''P
 
@@ -21,19 +20,22 @@ makeLenses ''State
 instance Show State where
   show State {_m = m, _variables = vs} =
     unlines
-      [ "m = " ++ show m,
+      [ "m = " ++ show (succ m),
         "variables: " ++ (show . M.toList) vs
       ]
+
+prettyPrintProgramState :: P -> State -> String
+prettyPrintProgramState p s = show p ++ "\n" ++ show s
 
 initialState :: [Int] -> State
 initialState vs =
   State
     { _m = 0,
-      _variables = M.fromList (first X <$> zip [0 ..] vs)
+      _variables = M.fromList (first X <$> zip [1 ..] vs)
     }
 
 getVariable :: State -> Variable -> Int
-getVariable s v = M.findWithDefault 0 v (_variables s)
+getVariable s v = M.findWithDefault 1 v (_variables s)
 
 resolveLabel :: P -> State -> Label -> Int
 resolveLabel p _ l = _labels p M.! l
@@ -46,27 +48,15 @@ currentSentence p s = case _sentences p V.!? _m s of
 incrementPc :: State -> State
 incrementPc = over m succ
 
-step :: P -> State -> Writer [State] (Either Int State)
-step p s = case currentSentence p s of
-  Left y -> pure $ Left y
-  Right w -> do
-    tell [s]
-    pure $
-      Right $ case w of
-        Inc v -> incrementPc (set variables (M.insert v (succ (getVariable s v)) (_variables s)) s)
-        Dec v -> incrementPc (set variables (M.insert v (max 0 (pred (getVariable s v))) (_variables s)) s)
-        Nop _ -> incrementPc s
-        Jnz v l ->
-          if getVariable s v /= 0
-            then set m (resolveLabel p s l) s
-            else incrementPc s
+runSentence :: P -> State -> Sentence -> State
+runSentence _ s (Inc v) = incrementPc (set variables (M.insert v (succ (getVariable s v)) (_variables s)) s)
+runSentence _ s (Dec v) = incrementPc (set variables (M.insert v (max 0 (pred (getVariable s v))) (_variables s)) s)
+runSentence _ s (Nop _) = incrementPc s
+runSentence p s (Jnz v l) = case getVariable s v of
+  0 -> incrementPc s
+  _ -> set m (resolveLabel p s l) s
 
-run :: [Int] -> P -> (Int, [State])
-run vs p = (runWriter . f) (step p (initialState vs))
-  where
-    f :: Writer [State] (Either Int State) -> Writer [State] Int
-    f x = do
-      e <- x
-      case e of
-        Left y -> pure y
-        Right s -> f (step p s)
+step :: P -> State -> Either Int State
+step p s = case currentSentence p s of
+  Left y -> Left y
+  Right w -> Right (runSentence p s w)
